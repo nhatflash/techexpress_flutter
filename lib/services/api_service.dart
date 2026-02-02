@@ -19,8 +19,9 @@ class ApiService {
   ApiService._internal() {
     _dio = Dio(BaseOptions(
       baseUrl: ApiConfig.baseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      sendTimeout: const Duration(seconds: 10),
       headers: { 'Content-Type': 'application/json' },
       )
     );
@@ -36,6 +37,15 @@ class ApiService {
     _dio.interceptors.add(InterceptorsWrapper(
       onError: (error, handler) async {
         if (error.response?.statusCode == 401) {
+          // Check if this is a public API endpoint
+          final requestPath = error.requestOptions.path;
+          final isPublicApi = ApiConfig.publicApis.contains(requestPath);
+
+          // If it's a public API, don't try to refresh token - just pass the error through
+          if (isPublicApi) {
+            return handler.next(error);
+          }
+
           final refreshToken = await getRefreshToken();
           if (refreshToken == null) {
             await deleteRefreshToken();
@@ -65,6 +75,7 @@ class ApiService {
           final response = await _dio.fetch(error.requestOptions);
           return handler.resolve(response);
         }
+        return handler.next(error);
       }
     ));
   }
@@ -119,23 +130,43 @@ class ApiService {
   }
 
   Future<Response> get(String path, {Map<String, dynamic>? queryParams}) async {
-    return await _dio.get(path, queryParameters: queryParams);
+    try {
+      return await _dio.get(path, queryParameters: queryParams);
+    } on DioException catch (e) {
+      throw ErrorMessage.fromDioException(e);
+    }
   }
 
   Future<Response> post(String path, {dynamic data}) async {
-    return await _dio.post(path, data: data);
+    try {
+      return await _dio.post(path, data: data);
+    } on DioException catch (e) {
+      throw ErrorMessage.fromDioException(e);
+    }
   }
 
   Future<Response> put(String path, {dynamic data}) async {
-    return await _dio.put(path, data: data);
+    try {
+      return await _dio.put(path, data: data);
+    } on DioException catch (e) {
+      throw ErrorMessage.fromDioException(e);
+    }
   }
 
   Future<Response> patch(String path, Object data) async {
-    return await _dio.patch(path, data: data);
+    try {
+      return await _dio.patch(path, data: data);
+    } on DioException catch (e) {
+      throw ErrorMessage.fromDioException(e);
+    }
   }
 
   Future<Response> delete(String path, {dynamic data}) async {
-    return await _dio.delete(path, data: data);
+    try {
+      return await _dio.delete(path, data: data);
+    } on DioException catch (e) {
+      throw ErrorMessage.fromDioException(e);
+    }
   }
 
   Future<String> refresh(String refreshToken) async {
@@ -143,8 +174,9 @@ class ApiService {
       // Use a separate Dio instance to avoid triggering the interceptor
       final refreshDio = Dio(BaseOptions(
         baseUrl: ApiConfig.baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        sendTimeout: const Duration(seconds: 10),
         headers: {'Content-Type': 'application/json'},
       ));
       (refreshDio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
@@ -156,8 +188,8 @@ class ApiService {
         'refreshToken': refreshToken,
       });
       final value = response.data['value'];
-      setToken(value['accessToken']);
-      return value['accessToken'];
+      setToken(value);
+      return value;
     } on DioException catch (e) {
       throw ErrorMessage.fromDioException(e);
     }

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:techexpress_flutter/components/toast_widget.dart';
 import 'package:techexpress_flutter/config/routes.dart';
+import 'package:techexpress_flutter/errors/error_message.dart';
+import 'package:techexpress_flutter/models/category.dart';
 import 'package:techexpress_flutter/models/user.dart';
 import 'package:techexpress_flutter/services/api_service.dart';
+import 'package:techexpress_flutter/services/category_service.dart';
 import 'package:techexpress_flutter/services/user_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,12 +17,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _userService = UserService();
+  final _categoryService = CategoryService();
+  List<Category> _categories = [];
   User? _user;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _loadCategories();
   }
 
   Future<void> _loadProfile() async {
@@ -30,41 +37,34 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       final user = await _userService.getProfile();
       if (mounted) setState(() => _user = user);
-    } catch (_) {}
+    } on ErrorMessage catch (_) {
+      if (!mounted) return;
+      showToast(context, 'Máy chủ hiện không khả dụng.');
+    }
   }
 
-  final List<Map<String, dynamic>> _categories = [
-    {
-      'name': 'Laptop',
-      'icon': Icons.laptop,
-      'subCategories': ['Gaming', 'Văn phòng', 'Đồ hoạ', 'Mỏng nhẹ'],
-    },
-    {
-      'name': 'PC',
-      'icon': Icons.desktop_windows,
-      'subCategories': ['Gaming PC', 'Workstation', 'Mini PC'],
-    },
-    {
-      'name': 'Linh kiện',
-      'icon': Icons.memory,
-      'subCategories': ['CPU', 'GPU', 'RAM', 'SSD', 'Mainboard', 'PSU', 'Case'],
-    },
-    {
-      'name': 'Màn hình',
-      'icon': Icons.monitor,
-      'subCategories': ['Gaming', 'Văn phòng', 'Đồ hoạ', 'Cong'],
-    },
-    {
-      'name': 'Phụ kiện',
-      'icon': Icons.keyboard,
-      'subCategories': ['Chuột', 'Bàn phím', 'Tai nghe', 'Webcam', 'Loa'],
-    },
-    {
-      'name': 'Mạng',
-      'icon': Icons.wifi,
-      'subCategories': ['Router', 'Switch', 'Access Point', 'Mesh Wifi'],
-    },
-  ];
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await _categoryService.getCategories();
+      if (mounted) setState(() => _categories = categories);
+    } on ErrorMessage catch (e) {
+      // Don't show error for 401 (categories require auth, which is expected)
+      if (e.statusCode != 401) {
+        if (mounted) showToast(context, 'Không thể tải danh mục.');
+      }
+      // For 401, silently fail - categories will be empty for unauthenticated users
+    }
+  }
+
+  // Get only parent categories (where parentCategoryId is null)
+  List<Category> get _parentCategories {
+    return _categories.where((cat) => cat.parentCategoryId == null).toList();
+  }
+
+  // Get subcategories for a specific parent category
+  List<Category> _getSubCategories(String parentId) {
+    return _categories.where((cat) => cat.parentCategoryId == parentId).toList();
+  }
 
   bool _showCategories = false;
 
@@ -162,25 +162,59 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const Divider(),
-                    ..._categories.map((category) {
-                      return ExpansionTile(
-                        leading: Icon(category['icon'] as IconData, color: Colors.blueAccent),
-                        title: Text(
-                          category['name'] as String,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                    if (_categories.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(32),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(Icons.category_outlined, size: 48, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                'Chưa có danh mục nào',
+                                style: TextStyle(color: Colors.grey, fontSize: 16),
+                              ),
+                            ],
+                          ),
                         ),
-                        children: (category['subCategories'] as List<String>).map((sub) {
-                          return ListTile(
-                            contentPadding: const EdgeInsets.only(left: 72),
-                            title: Text(sub),
-                            onTap: () {
-                              setState(() => _showCategories = false);
-                              // TODO: navigate to product list filtered by sub-category
-                            },
-                          );
-                        }).toList(),
-                      );
-                    }),
+                      )
+                    else
+                      ..._parentCategories.map((parentCategory) {
+                        final subCategories = _getSubCategories(parentCategory.id);
+                        return ExpansionTile(
+                          leading: parentCategory.imageUrl != null
+                              ? Image.network(
+                                  parentCategory.imageUrl!,
+                                  width: 24,
+                                  height: 24,
+                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.category, color: Colors.blueAccent),
+                                )
+                              : const Icon(Icons.category, color: Colors.blueAccent),
+                          title: Text(
+                            parentCategory.name,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          children: subCategories.map((subCategory) {
+                            return ListTile(
+                              contentPadding: const EdgeInsets.only(left: 72),
+                              leading: subCategory.imageUrl != null
+                                  ? Image.network(
+                                      subCategory.imageUrl!,
+                                      width: 20,
+                                      height: 20,
+                                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.arrow_right, size: 20),
+                                    )
+                                  : const Icon(Icons.arrow_right, size: 20),
+                              title: Text(subCategory.name),
+                              onTap: () {
+                                setState(() => _showCategories = false);
+                                // TODO: navigate to product list filtered by sub-category
+                                // Use: subCategory.id
+                              },
+                            );
+                          }).toList(),
+                        );
+                      }),
                   ],
                 ),
               ),

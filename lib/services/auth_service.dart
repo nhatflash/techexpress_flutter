@@ -1,6 +1,4 @@
-import 'package:dio/dio.dart';
 import 'package:techexpress_flutter/config/api_config.dart';
-import 'package:techexpress_flutter/errors/error_message.dart';
 import 'package:techexpress_flutter/models/token.dart';
 import 'package:techexpress_flutter/services/api_service.dart';
 
@@ -15,35 +13,27 @@ class AuthService {
     String? lastName,
     String? phone,
   }) async {
-    try {
-      await _api.post(ApiConfig.register, data: {
-        'email': email,
-        'password': password,
-        'firstName': ?firstName,
-        'lastName': ?lastName,
-        'phone': ?phone,
-      });
-    } on DioException catch (e) {
-      throw ErrorMessage.fromDioException(e);
-    }
+    await _api.post(ApiConfig.register, data: {
+      'email': email,
+      'password': password,
+      'firstName': ?firstName,
+      'lastName': ?lastName,
+      'phone': ?phone,
+    });
   }
 
   Future<Token> login(String email, String password) async {
-    try {
-      final existRefreshToken = await _api.getRefreshToken();
-      if (existRefreshToken != null) {
-        await _api.deleteRefreshToken();
-      }
-      final response = await _api.post(ApiConfig.login, data: {
-        'email': email,
-        'password': password
-      });
-      final value = response.data['value'];
-      _api.setToken(value['accessToken']);
-      await _api.storeRefreshToken(value['refreshToken']);
-      return Token.fromJson(value);
-    } on DioException catch (e) {
-      throw ErrorMessage.fromDioException(e);
+    final existRefreshToken = await _api.getRefreshToken();
+    if (existRefreshToken != null) {
+      await _api.deleteRefreshToken();
     }
+    final response = await _api.post(ApiConfig.login, data: {
+      'email': email,
+      'password': password
+    });
+    final value = response.data['value'];
+    _api.setToken(value['accessToken']);
+    await _api.storeRefreshToken(value['refreshToken']);
+    return Token.fromJson(value);
   }
 }

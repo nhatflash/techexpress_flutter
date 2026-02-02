@@ -5,8 +5,8 @@ import 'package:techexpress_flutter/screens/home/home_screen.dart';
 import 'package:techexpress_flutter/screens/user/user_profile.dart';
 
 class AppRoutes {
-  static const login = '/signIn';
-  static const register = '/signUp';
+  static const login = '/login';
+  static const register = '/register';
   static const home = '/';
   static const profile = '/profile';
 

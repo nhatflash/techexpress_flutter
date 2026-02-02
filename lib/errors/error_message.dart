@@ -24,7 +24,9 @@ class ErrorMessage implements Exception {
     
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
+        return ErrorMessage(statusCode: 504, message: 'Kết nối quá giờ. Vui lòng thử lại');
       case DioExceptionType.receiveTimeout:
+        return ErrorMessage(statusCode: 504, message: 'Kết nối quá giờ. Vui lòng thử lại');
       case DioExceptionType.sendTimeout:
         return ErrorMessage(statusCode: 504, message: 'Kết nối quá giờ. Vui lòng thử lại');
       case DioExceptionType.connectionError:
