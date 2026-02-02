@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadCategories() async {
     try {
-      final categories = await _categoryService.getCategories();
+      final categories = await _categoryService.getCategoriesForUi();
       if (mounted) setState(() => _categories = categories);
     } on ErrorMessage catch (e) {
       // Don't show error for 401 (categories require auth, which is expected)

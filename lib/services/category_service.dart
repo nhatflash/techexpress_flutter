@@ -8,19 +8,23 @@ class CategoryService {
   Future<List<Category>> getCategories() async {
     final response = await _api.get(ApiConfig.categories);
     final data = response.data;
-
-    // Check if the response is successful
     if (data['statusCode'] != 200) {
       return [];
     }
-
-    // Extract items from paginated response
     final value = data['value'];
     final List<dynamic> items = value['items'] ?? [];
 
-    // Return first 20 categories (first page)
     return items.map((json) => Category.fromJson(json)).toList();
   }
 
+  Future<List<Category>> getCategoriesForUi() async {
+    final response = await _api.get(ApiConfig.uiCategories);
+    final data = response.data;
+    if (data['statusCode'] != 200) {
+      return [];
+    }
+    final List<dynamic> values = data['value'];
+    return values.map((json) => Category.fromJson(json)).toList();
+  }
 
 }

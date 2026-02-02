@@ -16,11 +16,12 @@ class ApiConfig {
   static const String refresh = "/Auth/refresh";
   static const String profile = "/User/me";
   static const String categories = '/Category';
+  static const String uiCategories = '/Category/ui';
 
   static const publicApis = {
     login,
     register,
     refresh,
-    categories
+    uiCategories,
   };
 }
