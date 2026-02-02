@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:techexpress_flutter/config/api_config.dart';
 import 'package:techexpress_flutter/config/routes.dart';
@@ -26,22 +27,23 @@ class ApiService {
       )
     );
 
-    // dev-only
-    (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
-      final client = HttpClient();
-      client.badCertificateCallback = (cert, host, port) => true;
-      return client;
-    };
+    // Trust certificate (Dev only)
+    if (!kIsWeb) {
+      (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+        final client = HttpClient();
+        client.badCertificateCallback = (cert, host, port) => true;
+        return client;
+      };
+    }
+
 
     // interceptor for handling refresh token
     _dio.interceptors.add(InterceptorsWrapper(
       onError: (error, handler) async {
         if (error.response?.statusCode == 401) {
-          // Check if this is a public API endpoint
           final requestPath = error.requestOptions.path;
           final isPublicApi = ApiConfig.publicApis.contains(requestPath);
 
-          // If it's a public API, don't try to refresh token - just pass the error through
           if (isPublicApi) {
             return handler.next(error);
           }
@@ -51,7 +53,6 @@ class ApiService {
             await deleteRefreshToken();
             clearToken();
 
-            // Check if the user is on an authenticated screen
             String? currentRoute;
             Constant.navigatorKey.currentState?.popUntil((route) {
               currentRoute = route.settings.name;

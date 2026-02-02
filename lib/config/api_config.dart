@@ -1,13 +1,12 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class ApiConfig {
-  // Platform-specific base URL
   static String get baseUrl {
-    if (Platform.isAndroid) {
-      // Android Emulator uses 10.0.2.2 to access host machine
+    if (kIsWeb) {
+      return "https://localhost:7194/api";
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
       return "https://10.0.2.2:7194/api";
     } else {
-      // iOS Simulator and other platforms use localhost
       return "https://localhost:7194/api";
     }
   }

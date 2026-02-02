@@ -3,6 +3,7 @@ import 'package:techexpress_flutter/components/toast_widget.dart';
 import 'package:techexpress_flutter/config/routes.dart';
 import 'package:techexpress_flutter/errors/error_message.dart';
 import 'package:techexpress_flutter/services/auth_service.dart';
+import 'package:techexpress_flutter/services/token_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,15 +20,22 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
 
   final _auth = AuthService();
+  final _tokenService = TokenService();
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      await _auth.login(_emailController.text, _passwordController.text);
-      if (!mounted) return;
-      showToast(context, 'Đăng nhập thành công', isSuccess: true);
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
+      final response = await _auth.login(_emailController.text, _passwordController.text);
+      if (mounted) {
+        showToast(context, 'Đăng nhập thành công', isSuccess: true);
+        final role = _tokenService.getRoleFromToken(response.accessToken);
+        if (role == 'Admin') {
+          Navigator.pushReplacementNamed(context, AppRoutes.admin);
+          return;
+        }
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
+      }
     } on ErrorMessage catch (e) {
       if (!mounted) return;
       showToast(context, e.message);
@@ -176,8 +184,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
 
                   // Register link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       const Text(
                         "Chưa có tài khoản? ",

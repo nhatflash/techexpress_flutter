@@ -24,8 +24,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
-    _loadCategories();
+    _initialize();
+  }
+
+  Future<void> _initialize() async{
+    await _loadProfile();
+    await _loadCategories();
   }
 
   Future<void> _loadProfile() async {
@@ -106,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _user!.email,
+                    _user!.firstName ?? _user!.email,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                   const SizedBox(width: 8),
