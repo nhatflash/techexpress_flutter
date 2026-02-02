@@ -185,15 +185,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     else
                       ..._parentCategories.map((parentCategory) {
                         final subCategories = _getSubCategories(parentCategory.id);
+                        final leading = parentCategory.imageUrl != null
+                            ? Image.network(
+                                parentCategory.imageUrl!,
+                                width: 24,
+                                height: 24,
+                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.category, color: Colors.blueAccent),
+                              )
+                            : const Icon(Icons.category, color: Colors.blueAccent);
+                        if (subCategories.isEmpty) {
+                          return ListTile(
+                            leading: leading,
+                            title: Text(
+                              parentCategory.name,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            onTap: () {
+                              setState(() => _showCategories = false);
+                              // TODO: navigate to product list filtered by category
+                            },
+                          );
+                        }
                         return ExpansionTile(
-                          leading: parentCategory.imageUrl != null
-                              ? Image.network(
-                                  parentCategory.imageUrl!,
-                                  width: 24,
-                                  height: 24,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.category, color: Colors.blueAccent),
-                                )
-                              : const Icon(Icons.category, color: Colors.blueAccent),
+                          leading: leading,
                           title: Text(
                             parentCategory.name,
                             style: const TextStyle(fontWeight: FontWeight.w600),
