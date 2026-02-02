@@ -17,6 +17,7 @@ class ApiConfig {
   static const String profile = "/User/me";
   static const String categories = '/Category';
   static const String uiCategories = '/Category/ui';
+  static const String users = '/User';
 
   static const publicApis = {
     login,

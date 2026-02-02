@@ -102,31 +102,89 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             )
           else
-            GestureDetector(
-              onTap: () => Navigator.pushNamed(context, AppRoutes.profile),
+            PopupMenuButton<String>(
+              offset: const Offset(0, 48),
+              onSelected: (value) async {
+                switch (value) {
+                  case 'profile':
+                    Navigator.pushNamed(context, AppRoutes.profile);
+                    break;
+                  case 'admin':
+                    Navigator.pushNamed(context, AppRoutes.admin);
+                    break;
+                  case 'logout':
+                    final api = ApiService();
+                    api.clearToken();
+                    await api.deleteRefreshToken();
+                    setState(() => _user = null);
+                    break;
+                }
+              },
+              itemBuilder: (context) {
+                final role = _user!.role;
+                return [
+                  PopupMenuItem(
+                    enabled: false,
+                    child: Text(
+                      _user!.firstName ?? _user!.email,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'profile',
+                    child: ListTile(
+                      leading: Icon(Icons.person),
+                      title: Text('Profile'),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  if (role == 'Admin' || role == 'Staff')
+                    PopupMenuItem(
+                      value: 'admin',
+                      child: ListTile(
+                        leading: const Icon(Icons.admin_panel_settings),
+                        title: Text(role == 'Admin' ? 'Admin Panel' : 'Staff Panel'),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: ListTile(
+                      leading: Icon(Icons.logout, color: Colors.red),
+                      title: Text('Logout', style: TextStyle(color: Colors.red)),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ];
+              },
               child: Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _user!.firstName ?? _user!.email,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                  const SizedBox(width: 8),
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundImage: _user!.avatarImage != null
-                        ? NetworkImage(_user!.avatarImage!)
-                        : null,
-                    child: _user!.avatarImage == null
-                        ? const Icon(Icons.person, size: 18, color: Colors.white)
-                        : null,
-                  ),
-                ],
+                padding: const EdgeInsets.only(right: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _user!.firstName ?? _user!.email,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundImage: _user!.avatarImage != null
+                          ? NetworkImage(_user!.avatarImage!)
+                          : null,
+                      child: _user!.avatarImage == null
+                          ? const Icon(Icons.person, size: 18, color: Colors.white)
+                          : null,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
       body: Stack(

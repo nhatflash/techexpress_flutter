@@ -13,6 +13,7 @@ class User {
   final String? avatarImage;
   final String? identity;
   final double? salary;
+  final String role;
 
   User({
     required this.id,
@@ -27,7 +28,8 @@ class User {
     this.postalCode,
     this.avatarImage,
     this.identity,
-    this.salary
+    this.salary,
+    required this.role,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -44,7 +46,8 @@ class User {
       postalCode: json['postalCode'],
       avatarImage: json['avatarImage'],
       identity: json['identity'],
-      salary: json['salary']
+      salary: json['salary'],
+      role: json['role'],
     );
   }
 
@@ -63,6 +66,7 @@ class User {
       'avatarImage': avatarImage,
       'identity': identity,
       'salary': salary,
+      'role': role,
     };
   }
 }

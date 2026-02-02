@@ -91,6 +91,25 @@ class ApiService {
 
   bool get hasToken => _dio.options.headers.containsKey('Authorization');
 
+  String? getUserRole() {
+    final auth = _dio.options.headers['Authorization'] as String?;
+    if (auth == null || !auth.startsWith('Bearer ')) return null;
+    try {
+      final token = auth.substring(7);
+      final parts = token.split('.');
+      if (parts.length != 3) return null;
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final map = jsonDecode(decoded) as Map<String, dynamic>;
+      // ASP.NET uses this claim for role
+      return map['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] as String?
+          ?? map['role'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> storeRefreshToken(String refreshToken) async {
     final data = jsonEncode({
       'token': refreshToken,
