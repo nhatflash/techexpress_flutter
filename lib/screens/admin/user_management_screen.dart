@@ -13,15 +13,21 @@ class UserManagementScreen extends StatefulWidget {
 
 class _UserManagementScreenState extends State<UserManagementScreen> with SingleTickerProviderStateMixin {
   final _userService = UserService();
-  List<User> _users = [];
-  bool _isLoading = true;
   late TabController _tabController;
+
+  List<User> _staffUsers = [];
+  List<User> _customerUsers = [];
+  bool _isLoadingStaff = true;
+  bool _isLoadingCustomers = true;
+  int _staffPage = 1;
+  int _customerPage = 1;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadUsers();
+    _loadStaffs();
+    _loadCustomers();
   }
 
   @override
@@ -30,33 +36,46 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
     super.dispose();
   }
 
-  Future<void> _loadUsers() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadStaffs() async {
+    setState(() => _isLoadingStaff = true);
     try {
-      final users = await _userService.getUsers();
+      final staffs = await _userService.getStaffs(_staffPage);
       setState(() {
-        _users = users;
-        _isLoading = false;
+        _staffUsers = staffs;
+        _isLoadingStaff = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() => _isLoadingStaff = false);
       if (mounted) {
-        showToast(context, 'Tải thông tin người dùng thất bại $e');
+        showToast(context, 'Tải thông tin nhân viên thất bại: $e');
       }
     }
   }
 
-  List<User> get _staffUsers => _users.where((u) => u.salary != null).toList();
-  List<User> get _customerUsers => _users.where((u) => u.salary == null).toList();
+  Future<void> _loadCustomers() async {
+    setState(() => _isLoadingCustomers = true);
+    try {
+      final customers = await _userService.getCustomers(_customerPage);
+      setState(() {
+        _customerUsers = customers;
+        _isLoadingCustomers = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingCustomers = false);
+      if (mounted) {
+        showToast(context, 'Tải thông tin khách hàng thất bại: $e');
+      }
+    }
+  }
 
-  Future<void> _deleteUser(User user) async {
+  Future<void> _deleteUser(User user, {required bool isStaff}) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Xóa người dùng'),
         content: Text('Bạn có muốn xóa người dùng "${user.email}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Hủy')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -68,13 +87,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
     if (confirmed == true) {
       try {
         await _userService.deleteUser(user.id);
-        _loadUsers();
+        if (isStaff) {
+          _loadStaffs();
+        } else {
+          _loadCustomers();
+        }
         if (mounted) {
           showToast(context, 'Xóa người dùng thành công ${user.email}', isSuccess: true);
         }
       } catch (e) {
         if (mounted) {
-          showToast(context, 'Xoá người dùng thất bại $e');
+          showToast(context, 'Xoá người dùng thất bại: $e');
         }
       }
     }
@@ -88,12 +111,82 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
       ),
     );
     if (result == true) {
-      _loadUsers();
+      _loadStaffs();
     }
   }
 
-  Widget _buildUserTable(List<User> users, {required bool isStaff}) {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
+  Widget _buildStaffTab() {
+    return Column(
+      children: [
+        Expanded(child: _buildUserTable(_staffUsers, isStaff: true, isLoading: _isLoadingStaff)),
+        _buildPagination(
+          currentPage: _staffPage,
+          onPrevious: _staffPage > 1
+              ? () {
+                  _staffPage--;
+                  _loadStaffs();
+                }
+              : null,
+          onNext: _staffUsers.isNotEmpty
+              ? () {
+                  _staffPage++;
+                  _loadStaffs();
+                }
+              : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomerTab() {
+    return Column(
+      children: [
+        Expanded(child: _buildUserTable(_customerUsers, isStaff: false, isLoading: _isLoadingCustomers)),
+        _buildPagination(
+          currentPage: _customerPage,
+          onPrevious: _customerPage > 1
+              ? () {
+                  _customerPage--;
+                  _loadCustomers();
+                }
+              : null,
+          onNext: _customerUsers.isNotEmpty
+              ? () {
+                  _customerPage++;
+                  _loadCustomers();
+                }
+              : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPagination({
+    required int currentPage,
+    VoidCallback? onPrevious,
+    VoidCallback? onNext,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            onPressed: onPrevious,
+          ),
+          Text('Trang $currentPage'),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            onPressed: onNext,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserTable(List<User> users, {required bool isStaff, required bool isLoading}) {
+    if (isLoading) return const Center(child: CircularProgressIndicator());
     if (users.isEmpty) return const Center(child: Text('Không tìm thấy người dùng'));
 
     return SingleChildScrollView(
@@ -119,11 +212,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
                   if (isStaff)
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
+                      tooltip: 'Chỉnh sửa',
                       onPressed: () => _openStaffForm(user: user),
                     ),
                   IconButton(
                     icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                    onPressed: () => _deleteUser(user),
+                    tooltip: 'Xóa',
+                    onPressed: () => _deleteUser(user, isStaff: isStaff),
                   ),
                 ],
               )),
@@ -172,8 +267,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildUserTable(_staffUsers, isStaff: true),
-                _buildUserTable(_customerUsers, isStaff: false),
+                _buildStaffTab(),
+                _buildCustomerTab(),
               ],
             ),
           ),

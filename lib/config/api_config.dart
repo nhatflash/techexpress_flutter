@@ -19,6 +19,8 @@ class ApiConfig {
   static const String uiCategories = '/Category/ui';
   static const String parentCategories = '/Category/parent';
   static const String users = '/User';
+  static const String customers = '/User/customers';
+  static const String staffs = '/User/staffs';
 
   static const publicApis = {
     login,

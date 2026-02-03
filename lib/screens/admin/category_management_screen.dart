@@ -193,7 +193,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
               SizedBox(
                 width: 200,
                 child: DropdownButtonFormField<String?>(
-                  value: _selectedParentId,
+                  initialValue: _selectedParentId,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Danh mục cha',
@@ -213,7 +213,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
               SizedBox(
                 width: 180,
                 child: DropdownButtonFormField<bool?>(
-                  value: _statusFilter,
+                  initialValue: _statusFilter,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Trạng thái',
@@ -222,8 +222,8 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                   ),
                   items: const [
                     DropdownMenuItem(value: null, child: Text('Tất cả')),
-                    DropdownMenuItem(value: false, child: Text('Đang hoạt động')),
-                    DropdownMenuItem(value: true, child: Text('Đã xóa')),
+                    DropdownMenuItem(value: false, child: Text('Đã xóa')),
+                    DropdownMenuItem(value: true, child: Text('Đang hoạt động')),
                   ],
                   onChanged: (value) {
                     setState(() => _statusFilter = value);
@@ -250,30 +250,55 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                         child: SizedBox(
                           width: double.infinity,
                           child: DataTable(
+                            columnSpacing: 23,
                             columns: const [
                               DataColumn(label: Text('Tên')),
                               DataColumn(label: Text('Hành động')),
                             ],
                             rows: categories.map((category) {
                               return DataRow(cells: [
-                                DataCell(Text(category.name)),
+                                DataCell(
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 300),
+                                    child: Text(
+                                      category.name,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                ),
                                 DataCell(Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.visibility, size: 20, color: Colors.blueAccent),
-                                      tooltip: 'Xem chi tiết',
-                                      onPressed: () => _openDetails(category),
+                                    SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        icon: const Icon(Icons.visibility, size: 18, color: Colors.blueAccent),
+                                        tooltip: 'Xem chi tiết',
+                                        onPressed: () => _openDetails(category),
+                                      ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, size: 20),
-                                      tooltip: 'Chỉnh sửa',
-                                      onPressed: () => _openForm(category: category),
+                                    SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        icon: const Icon(Icons.edit, size: 18),
+                                        tooltip: 'Chỉnh sửa',
+                                        onPressed: () => _openForm(category: category),
+                                      ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                                      tooltip: 'Xóa',
-                                      onPressed: () => _deleteCategory(category),
+                                    SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                                        tooltip: 'Xóa',
+                                        onPressed: () => _deleteCategory(category),
+                                      ),
                                     ),
                                   ],
                                 )),

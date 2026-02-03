@@ -52,11 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final categories = await _categoryService.getCategoriesForUi();
       if (mounted) setState(() => _categories = categories);
     } on ErrorMessage catch (e) {
-      // Don't show error for 401 (categories require auth, which is expected)
-      if (e.statusCode != 401) {
-        if (mounted) showToast(context, 'Không thể tải danh mục.');
+      if (mounted) {
+        showToast(context, 'Tải danh mục thất bại $e');
       }
-      // For 401, silently fail - categories will be empty for unauthenticated users
     }
   }
 

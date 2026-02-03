@@ -14,9 +14,33 @@ class UserService {
     final response = await _api.get(ApiConfig.users);
     final data = response.data;
     if (data['statusCode'] != 200) return [];
-    final List<dynamic> items = data['value']['items'] ?? [];
+    final List<dynamic> values = data['value'] ?? [];
+    return values.map((json) => User.fromJson(json)).toList();
+  }
+
+  Future<List<User>> getStaffs(int page) async {
+    final queryParams = <String, dynamic> {
+      "page": page,
+      "sortBy": 0,
+    };
+    final response = await _api.get(ApiConfig.staffs, queryParams: queryParams);
+    final data = response.data;
+    if (data['statusCode'] != 200) return [];
+    final List<dynamic> items = data['value']['items'];
     return items.map((json) => User.fromJson(json)).toList();
   }
+
+  Future<List<User>> getCustomers(int page) async {
+    final queryParams = <String, dynamic> {
+      "page": page
+    };
+    final response = await _api.get(ApiConfig.customers, queryParams: queryParams);
+    final data = response.data;
+    if (data['statusCode'] != 200) return [];
+    final List<dynamic> items = data['value']['items'];
+    return items.map((json) => User.fromJson(json)).toList();
+  }
+
 
   Future<User> getUserById(String id) async {
     final response = await _api.get('${ApiConfig.users}/$id');

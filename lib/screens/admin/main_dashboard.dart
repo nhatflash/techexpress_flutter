@@ -28,12 +28,12 @@ class _MainDashboardState extends State<MainDashboard> {
     NavigationRailDestination(
       icon: Icon(Icons.category_outlined),
       selectedIcon: Icon(Icons.category),
-      label: Text('Categories'),
+      label: Text('Danh mục'),
     ),
     NavigationRailDestination(
       icon: Icon(Icons.people_outlined),
       selectedIcon: Icon(Icons.people),
-      label: Text('Users'),
+      label: Text('Người dùng'),
     ),
   ];
 
