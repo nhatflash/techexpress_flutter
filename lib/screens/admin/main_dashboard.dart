@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:techexpress_flutter/screens/admin/dashboard_home.dart';
 import 'package:techexpress_flutter/screens/admin/category_management_screen.dart';
+import 'package:techexpress_flutter/screens/admin/brand_management_screen.dart';
 import 'package:techexpress_flutter/screens/admin/user_management_screen.dart';
 
 class MainDashboard extends StatefulWidget {
@@ -16,6 +17,7 @@ class _MainDashboardState extends State<MainDashboard> {
   final List<Widget> _pages = const [
     DashboardHome(),
     CategoryManagementScreen(),
+    BrandManagementScreen(),
     UserManagementScreen(),
   ];
 
@@ -31,13 +33,18 @@ class _MainDashboardState extends State<MainDashboard> {
       label: Text('Danh mục'),
     ),
     NavigationRailDestination(
+      icon: Icon(Icons.branding_watermark_outlined),
+      selectedIcon: Icon(Icons.branding_watermark),
+      label: Text('Thương hiệu'),
+    ),
+    NavigationRailDestination(
       icon: Icon(Icons.people_outlined),
       selectedIcon: Icon(Icons.people),
       label: Text('Người dùng'),
     ),
   ];
 
-  static const _titles = ['Dashboard', 'Danh mục', 'Người dùng'];
+  static const _titles = ['Dashboard', 'Danh mục', 'Thương hiệu', 'Người dùng'];
 
   @override
   Widget build(BuildContext context) {

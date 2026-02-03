@@ -21,6 +21,9 @@ class ApiConfig {
   static const String users = '/User';
   static const String customers = '/User/customers';
   static const String staffs = '/User/staffs';
+  static const String specDefinitions = '/SpecDefinition';
+  static const String categorySpecs = '/SpecDefinition/category';
+  static const String brands = '/Brand';
 
   static const publicApis = {
     login,
