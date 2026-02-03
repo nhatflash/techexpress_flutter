@@ -87,7 +87,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Staff' : 'Add Staff'),
+        title: Text(_isEditing ? 'Sửa thông tin nhân viên' : 'Thêm nhân viên'),
         backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.white,
       ),
@@ -102,37 +102,37 @@ class _UserFormScreenState extends State<UserFormScreen> {
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
                 keyboardType: TextInputType.emailAddress,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Email is required' : null,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Email là bắt buộc' : null,
               ),
               const SizedBox(height: 16),
               if (!_isEditing) ...[
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(labelText: 'Mật khẩu', border: OutlineInputBorder()),
                   obscureText: true,
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Password is required' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Mật khẩu là bắt buộc' : null,
                 ),
                 const SizedBox(height: 16),
               ],
               TextFormField(
                 controller: _firstNameController,
-                decoration: const InputDecoration(labelText: 'First Name', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Tên nhân viên là bắt buộc', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _lastNameController,
-                decoration: const InputDecoration(labelText: 'Last Name', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Họ nhân viên là bắt buộc', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Phone (optional)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Số điện thoại', border: OutlineInputBorder()),
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _salaryController,
-                decoration: const InputDecoration(labelText: 'Salary', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Tiền lương', border: OutlineInputBorder()),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 24),
@@ -144,7 +144,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
                 ),
                 child: _isLoading
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text(_isEditing ? 'Update' : 'Create'),
+                    : Text(_isEditing ? 'Sửa' : 'Tạo'),
               ),
             ],
           ),

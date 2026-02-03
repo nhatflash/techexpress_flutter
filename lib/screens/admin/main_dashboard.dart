@@ -37,7 +37,7 @@ class _MainDashboardState extends State<MainDashboard> {
     ),
   ];
 
-  static const _titles = ['Dashboard', 'Categories', 'Users'];
+  static const _titles = ['Dashboard', 'Danh mục', 'Người dùng'];
 
   @override
   Widget build(BuildContext context) {

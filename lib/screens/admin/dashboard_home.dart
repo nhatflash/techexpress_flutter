@@ -11,14 +11,14 @@ class DashboardHome extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Admin Dashboard',
+            'Trang quản trị viên',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Welcome to the admin panel. Use the sidebar to manage categories and users.',
+            'Chào mừng đến với trang quản trị.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Colors.grey[600],
             ),

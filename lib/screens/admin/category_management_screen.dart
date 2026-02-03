@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:techexpress_flutter/components/toast_widget.dart';
 import 'package:techexpress_flutter/models/category.dart';
 import 'package:techexpress_flutter/models/paginated_result.dart';
 import 'package:techexpress_flutter/services/category_service.dart';
 import 'package:techexpress_flutter/screens/admin/category_form_screen.dart';
+import 'package:techexpress_flutter/screens/admin/category_detail_screen.dart';
 
 class CategoryManagementScreen extends StatefulWidget {
   const CategoryManagementScreen({super.key});
@@ -37,9 +39,9 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
 
   Future<void> _loadParentCategories() async {
     try {
-      final result = await _categoryService.getCategories();
+      final result = await _categoryService.getParentCategories();
       setState(() {
-        _parentCategories = result.items.where((c) => c.parentCategoryId == null).toList();
+        _parentCategories = result;
       });
     } catch (_) {}
   }
@@ -60,9 +62,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load categories: $e')),
-        );
+        showToast(context, 'Tải danh mục thất bại: $e');
       }
     }
   }
@@ -84,14 +84,14 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Category'),
-        content: Text('Are you sure you want to delete "${category.name}"?'),
+        title: const Text('Xóa danh mục'),
+        content: Text('Bạn có muốn xóa danh mục "${category.name}"?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Xóa'),
           ),
         ],
       ),
@@ -101,15 +101,11 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
         await _categoryService.deleteCategory(category.id);
         _loadCategories();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Deleted "${category.name}"')),
-          );
+          showToast(context, 'Xoá thành công ${category.name}', isSuccess: true);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete: $e')),
-          );
+          showToast(context, 'Xoá thất bại $e');
         }
       }
     }
@@ -133,6 +129,20 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
     return parent?.name ?? '-';
   }
 
+  void _openDetails(Category category) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategoryDetailScreen(
+          category: category,
+          parentName: _getParentName(category.parentCategoryId),
+          onEdit: () => _openForm(category: category),
+          onDelete: () => _deleteCategory(category),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final categories = _result?.items ?? [];
@@ -146,12 +156,12 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
           Row(
             children: [
               Expanded(
-                child: Text('Categories', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+                child: Text('Danh mục', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
               ),
               ElevatedButton.icon(
                 onPressed: () => _openForm(),
                 icon: const Icon(Icons.add),
-                label: const Text('Add Category'),
+                label: const Text('Thêm danh mục'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
                   foregroundColor: Colors.white,
@@ -172,7 +182,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                 child: TextField(
                   controller: _searchController,
                   decoration: const InputDecoration(
-                    labelText: 'Search by name',
+                    labelText: 'Tìm kiếm tên',
                     border: OutlineInputBorder(),
                     isDense: true,
                     prefixIcon: Icon(Icons.search),
@@ -183,38 +193,40 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
               SizedBox(
                 width: 200,
                 child: DropdownButtonFormField<String?>(
-                  initialValue: _selectedParentId,
+                  value: _selectedParentId,
+                  isExpanded: true,
                   decoration: const InputDecoration(
-                    labelText: 'Parent',
+                    labelText: 'Danh mục cha',
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('All')),
-                    ..._parentCategories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))),
+                    const DropdownMenuItem(value: null, child: Text('Tất cả')),
+                    ..._parentCategories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name, overflow: TextOverflow.ellipsis))),
                   ],
                   onChanged: (value) {
-                    _selectedParentId = value;
+                    setState(() => _selectedParentId = value);
                     _search();
                   },
                 ),
               ),
               SizedBox(
-                width: 160,
+                width: 180,
                 child: DropdownButtonFormField<bool?>(
-                  initialValue: _statusFilter,
+                  value: _statusFilter,
+                  isExpanded: true,
                   decoration: const InputDecoration(
-                    labelText: 'Status',
+                    labelText: 'Trạng thái',
                     border: OutlineInputBorder(),
                     isDense: true,
                   ),
                   items: const [
-                    DropdownMenuItem(value: null, child: Text('All')),
-                    DropdownMenuItem(value: false, child: Text('Active')),
-                    DropdownMenuItem(value: true, child: Text('Deleted')),
+                    DropdownMenuItem(value: null, child: Text('Tất cả')),
+                    DropdownMenuItem(value: false, child: Text('Đang hoạt động')),
+                    DropdownMenuItem(value: true, child: Text('Đã xóa')),
                   ],
                   onChanged: (value) {
-                    _statusFilter = value;
+                    setState(() => _statusFilter = value);
                     _search();
                   },
                 ),
@@ -222,7 +234,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
               TextButton.icon(
                 onPressed: _clearFilters,
                 icon: const Icon(Icons.clear),
-                label: const Text('Clear'),
+                label: const Text('Xóa bộ lọc'),
               ),
             ],
           ),
@@ -233,34 +245,34 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : categories.isEmpty
-                    ? const Center(child: Text('No categories found'))
+                    ? const Center(child: Text('Không tìm thấy danh mục'))
                     : SingleChildScrollView(
                         child: SizedBox(
                           width: double.infinity,
                           child: DataTable(
                             columns: const [
-                              DataColumn(label: Text('Name')),
-                              DataColumn(label: Text('Description')),
-                              DataColumn(label: Text('Parent')),
-                              DataColumn(label: Text('Status')),
-                              DataColumn(label: Text('Actions')),
+                              DataColumn(label: Text('Tên')),
+                              DataColumn(label: Text('Hành động')),
                             ],
                             rows: categories.map((category) {
                               return DataRow(cells: [
                                 DataCell(Text(category.name)),
-                                DataCell(Text(category.description, overflow: TextOverflow.ellipsis)),
-                                DataCell(Text(_getParentName(category.parentCategoryId))),
-                                DataCell(Text(category.isDeleted ? 'Deleted' : 'Active',
-                                    style: TextStyle(color: category.isDeleted ? Colors.red : Colors.green))),
                                 DataCell(Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
+                                      icon: const Icon(Icons.visibility, size: 20, color: Colors.blueAccent),
+                                      tooltip: 'Xem chi tiết',
+                                      onPressed: () => _openDetails(category),
+                                    ),
+                                    IconButton(
                                       icon: const Icon(Icons.edit, size: 20),
+                                      tooltip: 'Chỉnh sửa',
                                       onPressed: () => _openForm(category: category),
                                     ),
                                     IconButton(
                                       icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                                      tooltip: 'Xóa',
                                       onPressed: () => _deleteCategory(category),
                                     ),
                                   ],
@@ -288,7 +300,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                           }
                         : null,
                   ),
-                  Text('Page $_currentPage of ${_result!.totalPages}'),
+                  Text('Trang $_currentPage trên ${_result!.totalPages}'),
                   IconButton(
                     icon: const Icon(Icons.chevron_right),
                     onPressed: _result!.hasNextPage
@@ -299,7 +311,7 @@ class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
                         : null,
                   ),
                   const SizedBox(width: 16),
-                  Text('${_result!.totalCount} total', style: TextStyle(color: Colors.grey[600])),
+                  Text('Tổng ${_result!.totalCount}', style: TextStyle(color: Colors.grey[600])),
                 ],
               ),
             ),

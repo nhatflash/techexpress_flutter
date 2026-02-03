@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     value: 'profile',
                     child: ListTile(
                       leading: Icon(Icons.person),
-                      title: Text('Profile'),
+                      title: Text('Thông tin cá nhân'),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       value: 'admin',
                       child: ListTile(
                         leading: const Icon(Icons.admin_panel_settings),
-                        title: Text(role == 'Admin' ? 'Admin Panel' : 'Staff Panel'),
+                        title: Text(role == 'Admin' ? 'Trang quản lý quản trị' : 'Trang quản lý nhân viên'),
                         dense: true,
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     value: 'logout',
                     child: ListTile(
                       leading: Icon(Icons.logout, color: Colors.red),
-                      title: Text('Logout', style: TextStyle(color: Colors.red)),
+                      title: Text('Đăng xuất', style: TextStyle(color: Colors.red)),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:techexpress_flutter/components/toast_widget.dart';
 import 'package:techexpress_flutter/models/category.dart';
 import 'package:techexpress_flutter/services/category_service.dart';
 
@@ -38,9 +39,9 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
 
   Future<void> _loadParentCategories() async {
     try {
-      final categories = await _categoryService.getCategories();
+      final categories = await _categoryService.getParentCategories();
       setState(() {
-        _parentCategories = categories.items.where((c) => c.parentCategoryId == null).toList();
+        _parentCategories = categories;
         if (_isEditing) {
           _parentCategories.removeWhere((c) => c.id == widget.category!.id);
         }
@@ -69,9 +70,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
-        );
+        showToast(context, 'Lưu thất bại: $e');
       }
     } finally {
       setState(() => _isLoading = false);
@@ -90,7 +89,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Category' : 'Add Category'),
+        title: Text(_isEditing ? 'Sửa danh mục' : 'Thêm danh mục'),
         backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.white,
       ),
@@ -103,27 +102,27 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                decoration: const InputDecoration(labelText: 'Tên', border: OutlineInputBorder()),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Tên danh mục là bắt buộc' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Mô tả', border: OutlineInputBorder()),
                 maxLines: 3,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Description is required' : null,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Mô tả là bắt buộc' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _imageUrlController,
-                decoration: const InputDecoration(labelText: 'Image URL (optional)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Đường dẫn ảnh (tùy chọn)', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String?>(
                 initialValue: _selectedParentId,
-                decoration: const InputDecoration(labelText: 'Parent Category (optional)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Danh mục cha (tùy chọn)', border: OutlineInputBorder()),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('None (Top-level)')),
+                  const DropdownMenuItem(value: null, child: Text('Không')),
                   ..._parentCategories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))),
                 ],
                 onChanged: (value) => setState(() => _selectedParentId = value),
@@ -137,7 +136,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                 ),
                 child: _isLoading
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text(_isEditing ? 'Update' : 'Create'),
+                    : Text(_isEditing ? 'Chỉnh sửa' : 'Tạo mới'),
               ),
             ],
           ),

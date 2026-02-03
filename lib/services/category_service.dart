@@ -41,6 +41,16 @@ class CategoryService {
     return PaginatedResult.fromJson(data['value'], Category.fromJson);
   }
 
+  Future<List<Category>> getParentCategories() async {
+    final response = await _api.get(ApiConfig.parentCategories);
+    final data = response.data;
+    if (data['statusCode'] != 200) {
+      return [];
+    }
+    final List<dynamic> values = data['value'];
+    return values.map((json) => Category.fromJson(json)).toList();
+  }
+
   Future<List<Category>> getCategoriesForUi() async {
     final response = await _api.get(ApiConfig.uiCategories);
     final data = response.data;

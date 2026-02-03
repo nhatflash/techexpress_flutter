@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:techexpress_flutter/components/toast_widget.dart';
 import 'package:techexpress_flutter/models/user.dart';
 import 'package:techexpress_flutter/services/user_service.dart';
 import 'package:techexpress_flutter/screens/admin/user_form_screen.dart';
@@ -40,9 +41,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load users: $e')),
-        );
+        showToast(context, 'Tải thông tin người dùng thất bại $e');
       }
     }
   }
@@ -54,14 +53,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete User'),
-        content: Text('Are you sure you want to delete "${user.email}"?'),
+        title: const Text('Xóa người dùng'),
+        content: Text('Bạn có muốn xóa người dùng "${user.email}"?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Xóa'),
           ),
         ],
       ),
@@ -71,15 +70,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
         await _userService.deleteUser(user.id);
         _loadUsers();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Deleted "${user.email}"')),
-          );
+          showToast(context, 'Xóa người dùng thành công ${user.email}', isSuccess: true);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete: $e')),
-          );
+          showToast(context, 'Xoá người dùng thất bại $e');
         }
       }
     }
@@ -99,7 +94,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
 
   Widget _buildUserTable(List<User> users, {required bool isStaff}) {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
-    if (users.isEmpty) return const Center(child: Text('No users found'));
+    if (users.isEmpty) return const Center(child: Text('Không tìm thấy người dùng'));
 
     return SingleChildScrollView(
       child: SizedBox(
@@ -107,10 +102,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
         child: DataTable(
           columns: [
             const DataColumn(label: Text('Email')),
-            const DataColumn(label: Text('Name')),
-            const DataColumn(label: Text('Phone')),
-            if (isStaff) const DataColumn(label: Text('Salary')),
-            const DataColumn(label: Text('Actions')),
+            const DataColumn(label: Text('Tên')),
+            const DataColumn(label: Text('Số điện thoại')),
+            if (isStaff) const DataColumn(label: Text('Tiền lương')),
+            const DataColumn(label: Text('Hành động')),
           ],
           rows: users.map((user) {
             return DataRow(cells: [
@@ -149,12 +144,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
           Row(
             children: [
               Expanded(
-                child: Text('Users', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+                child: Text('Người dùng', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
               ),
               ElevatedButton.icon(
                 onPressed: () => _openStaffForm(),
                 icon: const Icon(Icons.add),
-                label: const Text('Add Staff'),
+                label: const Text('Thêm nhân viên'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
                   foregroundColor: Colors.white,
@@ -168,8 +163,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> with Single
             labelColor: Colors.blueAccent,
             indicatorColor: Colors.blueAccent,
             tabs: const [
-              Tab(text: 'Staff'),
-              Tab(text: 'Customers'),
+              Tab(text: 'Nhân viên'),
+              Tab(text: 'Khách hàng'),
             ],
           ),
           const SizedBox(height: 8),
