@@ -119,7 +119,8 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String?>(
-                initialValue: _selectedParentId,
+                key: ValueKey(_parentCategories.length),
+                initialValue: _parentCategories.any((c) => c.id == _selectedParentId) ? _selectedParentId : null,
                 decoration: const InputDecoration(labelText: 'Danh mục cha (tùy chọn)', border: OutlineInputBorder()),
                 items: [
                   const DropdownMenuItem(value: null, child: Text('Không')),
